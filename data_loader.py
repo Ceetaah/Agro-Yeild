@@ -3,47 +3,44 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-class AgroTestDataset(Dataset):
-    def __init__(self, root_dir, breed_list, disease_list, transform=None):
-        self.root_dir = root_dir
-        self.transform = transform
-        self.breed_to_idx = {name: i for i, name in enumerate(breed_list)}
-        self.disease_to_idx = {name: i for i, name in enumerate(disease_list)}
+class a1(Dataset):
+    def __init__(a2, a3, a4, a5, a6=None):
+        a2.a3 = a3
+        a2.a6 = a6
+        a2.a7 = {a8: a9 for a9, a8 in enumerate(a4)}
+        a2.a10 = {a11: a12 for a12, a11 in enumerate(a5)}
         
-        self.images = []
-        # Walk through folders: dataset/Breed_Disease/image.jpg
-        for folder_name in os.listdir(root_dir):
-            folder_path = os.path.join(root_dir, folder_name)
-            if os.path.isdir(folder_path):
-                # Split folder name (e.g., "Ayrshire_Healthy" -> ["Ayrshire", "Healthy"])
-                parts = folder_name.split('_')
-                if len(parts) >= 2:
-                    b_name, d_name = parts[0], parts[1]
-                    for img_name in os.listdir(folder_path):
-                        self.images.append({
-                            'path': os.path.join(folder_path, img_name),
-                            'breed_idx': self.breed_to_idx[b_name],
-                            'disease_idx': self.disease_to_idx[d_name]
+        a2.a13 = []
+        for a14 in os.listdir(a3):
+            a15 = os.path.join(a3, a14)
+            if os.path.isdir(a15):
+                a16 = a14.split('_')
+                if len(a16) >= 2:
+                    a17, a18 = a16[0], a16[1]
+                    for a19 in os.listdir(a15):
+                        a2.a13.append({
+                            'path': os.path.join(a15, a19),
+                            'breed_idx': a2.a7[a17],
+                            'disease_idx': a2.a10[a18]
                         })
 
-    def __len__(self):
-        return len(self.images)
+    def __len__(a2):
+        return len(a2.a13)
 
-    def __getitem__(self, idx):
-        img_info = self.images[idx]
-        image = Image.open(img_info['path']).convert('RGB')
-        if self.transform:
-            image = self.transform(image)
-        return image, img_info['breed_idx'], img_info['disease_idx']
+    def __getitem__(a2, a20):
+        a21 = a2.a13[a20]
+        a22 = Image.open(a21['path']).convert('RGB')
+        if a2.a6:
+            a22 = a2.a6(a22)
+        return a22, a21['breed_idx'], a21['disease_idx']
 
-# Updated Loader Function
-def get_test_loader(breed_list, disease_list):
-    test_transforms = transforms.Compose([
+
+def a23(a4, a5):
+    a24 = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
     
-    # Use 'dataset' as the root since your 'test' folder wasn't found
-    dataset = AgroTestDataset('dataset', breed_list, disease_list, transform=test_transforms)
-    return DataLoader(dataset, batch_size=32, shuffle=False)
+    a25 = a1('dataset', a4, a5, transform=a24)
+    return DataLoader(a25, batch_size=32, shuffle=False)
