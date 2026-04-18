@@ -6,12 +6,12 @@ from torch.utils.data import DataLoader
 from model_arch import AgroYieldNet
 import os
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-BATCH_SIZE = 32
-EPOCHS = 20
-LR = 1e-4
+a1 = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+a2 = 32
+a3 = 20
+a4 = 1e-4
 
-train_transform = transforms.Compose([
+a5 = transforms.Compose([
     transforms.Resize((256, 256)),
     transforms.RandomResizedCrop(224, scale=(0.7, 1.0)),
     transforms.RandomHorizontalFlip(),
@@ -20,66 +20,66 @@ train_transform = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ]) 
 
-breed_dataset = datasets.ImageFolder(root='./dataset/breeds', transform=train_transform)
-disease_dataset = datasets.ImageFolder(root='./dataset/diseases', transform=train_transform)
+a6 = datasets.ImageFolder(root='./dataset/breeds', transform=a5)
+a7 = datasets.ImageFolder(root='./dataset/diseases', transform=a5)
 
-breed_loader = DataLoader(breed_dataset, batch_size=BATCH_SIZE, shuffle=True)
-disease_loader = DataLoader(disease_dataset, batch_size=BATCH_SIZE, shuffle=True)
+a8 = DataLoader(a6, batch_size=a2, shuffle=True)
+a9 = DataLoader(a7, batch_size=a2, shuffle=True)
 
-num_breeds = len(breed_dataset.classes)
-num_diseases = len(disease_dataset.classes)
+a10 = len(a6.classes)
+a11 = len(a7.classes)
 
-model = AgroYieldNet(num_breeds=num_breeds, num_diseases=num_diseases).to(device)
+a12 = AgroYieldNet(num_breeds=a10, num_diseases=a11).to(a1)
 
-for param in model.backbone.parameters():
-    param.requires_grad = False
-for param in model.backbone.blocks[-2:].parameters():
-    param.requires_grad = True
+for b1 in a12.backbone.parameters():
+    b1.requires_grad = False
+for b2 in a12.backbone.blocks[-2:].parameters():
+    b2.requires_grad = True
 
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=LR)
-scaler = torch.amp.GradScaler('cuda')
+a13 = nn.CrossEntropyLoss()
+a14 = torch.optim.AdamW(filter(lambda b3: b3.requires_grad, a12.parameters()), lr=a4)
+a15 = torch.amp.GradScaler('cuda')
 
-for epoch in range(EPOCHS):
-    model.train()
-    breed_iter = iter(breed_loader)
-    disease_iter = iter(disease_loader)
+for b4 in range(a3):
+    a12.train()
+    b5 = iter(a8)
+    b6 = iter(a9)
     
-    steps = max(len(breed_loader), len(disease_loader))
+    b7 = max(len(a8), len(a9))
     
-    for i in range(steps):
+    for b8 in range(b7):
         try:
-            b_imgs, b_labels = next(breed_iter)
+            b9, b10 = next(b5)
         except StopIteration:
-            breed_iter = iter(breed_loader)
-            b_imgs, b_labels = next(breed_iter)
+            b5 = iter(a8)
+            b9, b10 = next(b5)
             
         try:
-            d_imgs, d_labels = next(disease_iter)
+            b11, b12 = next(b6)
         except StopIteration:
-            disease_iter = iter(disease_loader)
-            d_imgs, d_labels = next(disease_iter)
+            b6 = iter(a9)
+            b11, b12 = next(b6)
 
-        b_imgs, b_labels = b_imgs.to(device), b_labels.to(device)
-        d_imgs, d_labels = d_imgs.to(device), d_labels.to(device)
+        b9, b10 = b9.to(a1), b10.to(a1)
+        b11, b12 = b11.to(a1), b12.to(a1)
 
-        optimizer.zero_grad()
+        a14.zero_grad()
         
         with torch.amp.autocast('cuda'):
-            b_out, _ = model(b_imgs)
-            _, d_out = model(d_imgs)
+            c1, _ = a12(b9)
+            _, c2 = a12(b11)
             
-            loss_b = criterion(b_out, b_labels)
-            loss_d = criterion(d_out, d_labels)
-            loss = loss_b + loss_d
+            c3 = a13(c1, b10)
+            c4 = a13(c2, b12)
+            c5 = c3 + c4
 
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
+        a15.scale(c5).backward()
+        a15.step(a14)
+        a15.update()
 
-    print(f"Epoch {epoch+1}/{EPOCHS} - Loss: {loss.item():.4f}")
+    print(f"Epoch {b4+1}/{a3} - Loss: {c5.item():.4f}")
 
-torch.save(model.state_dict(), 'agro_multi_task.pth')
-with open('classes.txt', 'w') as f:
-    f.write(",".join(breed_dataset.classes) + "\n")
-    f.write(",".join(disease_dataset.classes))
+torch.save(a12.state_dict(), 'agro_multi_task.pth')
+with open('classes.txt', 'w') as b13:
+    b13.write(",".join(a6.classes) + "\n")
+    b13.write(",".join(a7.classes))
